@@ -1,7 +1,9 @@
 package develooper.movies;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,21 +17,27 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/movies")
 public class MovieController{
+
     @Autowired
-    private MovieService service;
+    private MovieService movieService;
 
     @GetMapping
-    public ResponseEntity<List<Movie>> getMovies() {
-        return new ResponseEntity<List<Movie>>(service.allMovies(), HttpStatus.OK);
+    public ResponseEntity<List<Movie>> getAllMovies() {
+        List<Movie> movies = movieService.allMovies();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(movies);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Optional<Movie>> getSingleMovie(@PathVariable ObjectId id){
-        return new ResponseEntity<Optional<Movie>>(movieService.singleMovie(id), HttpStatus.OK );
+    @GetMapping("/{imdbId}")
+    public ResponseEntity<Movie> getSingleMovie(@PathVariable String imdbId) {
+        return movieService.singleMovie(imdbId)
+                .map(movie -> new ResponseEntity<>(movie, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-    @GetMapping("/test")
-    public ResponseEntity<String> testMovie() {
-        Movie movie = movieService.allMovies().get(0);
-        return new ResponseEntity<>(movie.getTitle(), HttpStatus.OK);
-    }
+//    @GetMapping("/test")
+//    public ResponseEntity<String> testMovie() {
+//        Movie movie = service.allMovies().get(0);
+//        return new ResponseEntity<>(movie.getTitle(), HttpStatus.OK);
+//    }
 }
